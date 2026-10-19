@@ -2,6 +2,7 @@
 // Кілт: Vercel → Settings → Environment Variables → GEMINI_API_KEY
 
 const MODEL = process.env.GEMINI_MODEL || "gemini-flash-latest";
+const LITE = "gemini-flash-lite-latest"; // тегін лимиті көбірек, қосалқы модель
 
 const DISTRICTS = { any: "любой район", alatau: "Алатауский район", almaly: "Алмалинский район", auezov: "Ауэзовский район", bostandyk: "Бостандыкский район", zhetysu: "Жетысуский район", medeu: "Медеуский район", nauryzbay: "Наурызбайский район", turksib: "Турксибский район" };
 const TYPES = { any: "любой: новостройки и вторичное жильё", building: "строящиеся ЖК (новостройки на этапе строительства)", ready: "сданные новостройки", secondary: "вторичный рынок" };
@@ -18,10 +19,10 @@ Reply with ONLY a JSON array and nothing else. Each item:
 Write text values in Kazakh, but keep the names of residential complexes as they are. If nothing fits exactly, return the closest options and say so in note.`;
 }
 
-async function callGemini(key, prompt, withSearch) {
+async function callGemini(key, prompt, withSearch, model) {
   const body = { contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { temperature: 0.3 } };
   if (withSearch) body.tools = [{ google_search: {} }];
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-goog-api-key": key },
     body: JSON.stringify(body)
@@ -53,11 +54,19 @@ module.exports = async (req, res) => {
   };
 
   try {
-    let grounded = true;
-    let r = await callGemini(key, buildPrompt(crit), true);
-    if (!r.ok && r.status !== 429) { grounded = false; r = await callGemini(key, buildPrompt(crit), false); }
-    if (r.status === 429) return res.status(429).json({ code: "rate_limited" });
-    if (!r.ok) { console.error(r.data); return res.status(502).json({ code: "upstream_error" }); }
+    // 1) Негізгі модель + Google іздеу, 2) жеңіл модель + Google іздеу,
+    // 3) негізгі модель іздеусіз, 4) жеңіл модель іздеусіз
+    const attempts = [[MODEL, true], [LITE, true], [MODEL, false], [LITE, false]];
+    let r = null, grounded = false, lastErr = "";
+    for (const [model, withSearch] of attempts) {
+      r = await callGemini(key, buildPrompt(crit), withSearch, model);
+      if (r.ok) { grounded = withSearch; break; }
+      lastErr = (r.data && r.data.error && r.data.error.message) || ("HTTP " + r.status);
+      console.error(model, withSearch, r.status, lastErr);
+    }
+    if (!r.ok) {
+      return res.status(r.status === 429 ? 429 : 502).json({ code: r.status === 429 ? "rate_limited" : "upstream_error", detail: lastErr.slice(0, 300) });
+    }
 
     const cand = r.data.candidates && r.data.candidates[0];
     const text = ((cand && cand.content && cand.content.parts) || []).map(p => p.text || "").join("");
