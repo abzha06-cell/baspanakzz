@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Алматыдан үй іздеу көмекшісі</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Unbounded:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDF1EF; --paper:#FFFFFF; --ink:#14221E; --muted:#56665F; --line:#CFDAD5;
+  --accent:#0E6B57; --onaccent:#FFFFFF; --soft:#DCEBE5; --warn:#B4540E; --warnbg:#FBEBDD; --ok:#1F7A4D;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1714; --paper:#15221E; --ink:#E1ECE7; --muted:#9AADA5; --line:#2A3C36;
+    --accent:#4FC7A6; --onaccent:#0E1714; --soft:#1B342C; --warn:#F2A35E; --warnbg:#3A2716; --ok:#5BD08F;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1714; --paper:#15221E; --ink:#E1ECE7; --muted:#9AADA5; --line:#2A3C36;
+  --accent:#4FC7A6; --onaccent:#0E1714; --soft:#1B342C; --warn:#F2A35E; --warnbg:#3A2716; --ok:#5BD08F;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;line-height:1.5}
+.wrap{max-width:1120px;margin:0 auto;padding:32px 18px 64px}
+header{max-width:720px;margin-bottom:26px}
+h1{font-family:"Unbounded","Golos Text",system-ui,sans-serif;font-weight:600;font-size:clamp(26px,5vw,42px);line-height:1.1;letter-spacing:-0.02em;margin:0 0 12px}
+.lede{margin:0;color:var(--muted);font-size:17px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;align-items:start}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px}
+.panel+.panel{margin-top:16px}
+h2{font-size:17px;margin:0 0 14px}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.seg button,.chips button{font:inherit;font-size:14px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.seg button[aria-pressed="true"],.chips button[aria-pressed="true"]{background:var(--accent);color:var(--onaccent);border-color:var(--accent)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+label.f{display:block;font-size:14px;color:var(--muted);margin-bottom:4px}
+.field{margin-bottom:14px}
+input[type=text],select{width:100%;font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.row2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.note{font-size:13px;color:var(--muted);background:var(--soft);border-radius:10px;padding:10px 12px;margin:0 0 4px}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.go{font:inherit;font-weight:600;width:100%;padding:14px;border:0;border-radius:12px;background:var(--accent);color:var(--onaccent);cursor:pointer;font-size:17px}
+.go[disabled]{opacity:.6;cursor:default}
+.sum{position:sticky;top:calc(16px + env(safe-area-inset-top,0px))}
+.big{font-family:"Unbounded","Golos Text",system-ui,sans-serif;font-size:28px;line-height:1.15;margin:4px 0 14px;font-variant-numeric:tabular-nums}
+.sum dl{display:grid;grid-template-columns:1fr auto;gap:8px 12px;margin:0}
+.sum dt{color:var(--muted);font-size:14px}
+.sum dd{margin:0;font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.alert{background:var(--warnbg);color:var(--ink);border-left:4px solid var(--warn);border-radius:8px;padding:10px 12px;font-size:14px;margin-top:14px}
+#results{margin-top:28px}
+.status{color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:8px}
+.card h3{margin:0;font-size:18px}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--bg);color:var(--muted)}
+.tag.fit{background:var(--soft);color:var(--ok);font-weight:600}
+.tag.over{background:var(--warnbg);color:var(--warn);font-weight:600}
+.price{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.card dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0;font-size:14px}
+.card dt{color:var(--muted)}
+.card dd{margin:0;font-variant-numeric:tabular-nums}
+.card p{margin:0;font-size:14px}
+.card a{color:var(--accent);font-size:14px;margin-top:auto}
+.sources{margin-top:18px;font-size:14px;color:var(--muted)}
+.sources a{color:var(--accent)}
+.disc{font-size:13px;color:var(--muted);margin-top:14px;max-width:80ch}
+@media (max-width:900px){.layout{grid-template-columns:1fr}.sum{position:static}}
+@media (max-width:520px){.row3{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Алматыдан үй іздеу көмекшісі</h1>
+    <p class="lede">Қолыңыздағы ақшаны және ипотека бағдарламасын енгізіңіз. Көмекші қанша тұратын пәтер алуға болатынын есептейді, сосын ЖИ интернеттен сол бюджетке сай пәтерлер мен тұрғын үй кешендерін тауып береді.</p>
+  </header>
+
+  <div class="layout">
+    <div>
+      <section class="panel" aria-labelledby="h1b">
+        <h2 id="h1b">1. Бюджетіңіз</h2>
+        <div class="seg" role="group" aria-label="Бюджет түрі">
+          <button type="button" data-mode="down" aria-pressed="true">Бастапқы жарнам бар</button>
+          <button type="button" data-mode="price" aria-pressed="false">Үйге жұмсайтын соманы білемін</button>
+        </div>
+        <div class="row2">
+          <div class="field"><label class="f" for="amount" id="amountLbl">Бастапқы жарнам, ₸</label>
+            <input type="text" id="amount" inputmode="numeric" value="5 000 000"></div>
+          <div class="field"><label class="f" for="income">Айлық табыс, ₸ (міндетті емес)</label>
+            <input type="text" id="income" inputmode="numeric" value="450 000"></div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h2b">
+        <h2 id="h2b">2. Ипотека</h2>
+        <div class="chips" id="programs" role="group" aria-label="Бағдарлама"></div>
+        <div class="row3" id="loanFields">
+          <div class="field"><label class="f" for="rate">Пайыздық мөлшерлеме, %</label><input type="text" id="rate" inputmode="decimal"></div>
+          <div class="field"><label class="f" for="downPct">Ең аз жарнам, %</label><input type="text" id="downPct" inputmode="decimal"></div>
+          <div class="field"><label class="f" for="years">Мерзімі, жыл</label><input type="text" id="years" inputmode="numeric"></div>
+        </div>
+        <p class="note" id="progNote"></p>
+      </section>
+
+      <section class="panel" aria-labelledby="h3b">
+        <h2 id="h3b">3. Қандай үй керек</h2>
+        <label class="f">Бөлме саны</label>
+        <div class="chips" id="rooms" role="group" aria-label="Бөлме саны"></div>
+        <div class="row2">
+          <div class="field"><label class="f" for="type">Үй түрі</label>
+            <select id="type">
+              <option value="any">Маңызды емес</option>
+              <option value="building">Салынып жатқан жаңа үй</option>
+              <option value="ready">Тапсырылған жаңа үй</option>
+              <option value="secondary">Екінші нарық</option>
+            </select></div>
+          <div class="field"><label class="f" for="district">Аудан</label>
+            <select id="district">
+              <option value="any">Кез келген аудан</option>
+              <option value="alatau">Алатау ауданы</option>
+              <option value="almaly">Алмалы ауданы</option>
+              <option value="auezov">Әуезов ауданы</option>
+              <option value="bostandyk">Бостандық ауданы</option>
+              <option value="zhetysu">Жетісу ауданы</option>
+              <option value="medeu">Медеу ауданы</option>
+              <option value="nauryzbay">Наурызбай ауданы</option>
+              <option value="turksib">Түрксіб ауданы</option>
+            </select></div>
+        </div>
+        <button class="go" id="go" type="button">Пәтер іздеу</button>
+      </section>
+    </div>
+
+    <aside class="panel sum" aria-live="polite">
+      <h2>Есептеу</h2>
+      <div style="color:var(--muted);font-size:14px">Сіз ала алатын пәтердің бағасы</div>
+      <div class="big" id="sMax">—</div>
+      <dl>
+        <dt>Бастапқы жарнам</dt><dd id="sDown">—</dd>
+        <dt>Несие сомасы</dt><dd id="sLoan">—</dd>
+        <dt>Ай сайынғы төлем</dt><dd id="sPay">—</dd>
+        <dt>Барлық артық төлем</dt><dd id="sOver">—</dd>
+      </dl>
+      <div class="alert" id="sAlert" hidden></div>
+    </aside>
+  </div>
+
+  <section id="results" aria-live="polite"></section>
+  <p class="disc">Бағалар интернеттегі хабарландырулардан алынады және өзгеруі мүмкін. Бағдарлама шарттарын банктен, ал пәтер бағасын құрылыс компаниясынан немесе сатушыдан міндетті түрде нақтылаңыз. Бұл есептеу қаржылық кеңес емес.</p>
+</div>
+
+<script>
+(function(){
+"use strict";
+const PROGRAMS={
+  nauryz:{t:"«Наурыз» (Отбасы банк)",rate:9,down:10,years:20,
+    note:"«Наурыз»: Отбасы банкте кемінде 2 млн ₸ жинақ керек және соңғы 5 жылда сізде де, отбасыңызда да меншікте үй болмауы керек. Тек құрылыс компанияларының жаңа үйлеріне беріледі. Жарнам таза әрлеуге 10%-дан, қара әрлеуге 20%-дан. Мөлшерлеме 9%, әлеуметтік осал топтарға 7%. Мерзімін банктен нақтылаңыз."},
+  p72025:{t:"«7-20-25»",rate:7,down:20,years:25,
+    note:"«7-20-25»: мөлшерлеме 7%, жарнам 20%-дан, мерзімі 25 жылға дейін. Екінші деңгейлі банктер арқылы беріледі. Пәтер бағасына шектеу бар, оны банктен нақтылаңыз."},
+  bank:{t:"Қарапайым банк ипотекасы",rate:20,down:20,years:20,
+    note:"Коммерциялық банктердегі қарапайым ипотека мөлшерлемесі әдетте жоғары, шамамен 20–25%. Кейбір құрылыс компаниялары банктермен бірге төмен мөлшерлемелі серіктестік бағдарламалар ұсынады."},
+  cash:{t:"Ипотекасыз",rate:0,down:100,years:0,
+    note:"Ипотекасыз: пәтерді толық өз ақшаңызға сатып аласыз, ай сайынғы төлем жоқ."}
+};
+const ROOMS=[["any","Маңызды емес"],["1","1 бөлме"],["2","2 бөлме"],["3","3 бөлме"],["4","4+ бөлме"]];
+
+const state={mode:"down",program:"nauryz",rooms:"2"};
+const $=id=>document.getElementById(id);
+const num=s=>Number(String(s).replace(/[^\d.,]/g,"").replace(",","."))||0;
+const money=x=>isFinite(x)?Math.round(x).toLocaleString("ru-RU").replace(/,/g," ")+" ₸":"—";
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function pmt(L,ratePct,years){
+  if(L<=0||years<=0)return 0;
+  const i=ratePct/100/12,N=years*12;
+  return i===0?L/N:L*i/(1-Math.pow(1+i,-N));
+}
+function loanFromPayment(P,ratePct,years){
+  const i=ratePct/100/12,N=years*12;
+  return i===0?P*N:P*(1-Math.pow(1+i,-N))/i;
+}
+function params(){
+  const p=state.program;
+  return{amount:num($("amount").value),income:num($("income").value),
+    rate:p==="cash"?0:num($("rate").value),downPct:p==="cash"?100:Math.max(1,num($("downPct").value)),
+    years:p==="cash"?0:num($("years").value),cash:p==="cash"};
+}
+// Бюджет бойынша ең жоғары баға мен төлемдер
+function budget(){
+  const x=params();
+  let maxPrice,down,limitedByIncome=false;
+  if(state.mode==="down"){
+    down=x.amount;
+    if(x.cash){maxPrice=down;}
+    else{
+      maxPrice=down/(x.downPct/100);
+      if(x.income>0){const byInc=down+loanFromPayment(0.5*x.income,x.rate,x.years);if(byInc<maxPrice){maxPrice=byInc;limitedByIncome=true;}}
+    }
+  }else{
+    maxPrice=x.amount;
+    down=x.cash?maxPrice:maxPrice*x.downPct/100;
+  }
+  const loan=Math.max(0,maxPrice-down);
+  const pay=pmt(loan,x.rate,x.years);
+  return{x,maxPrice,down,loan,pay,over:pay*x.years*12-loan,limitedByIncome};
+}
+// Нақты пәтер үшін есеп
+function forListing(price){
+  const x=params();
+  let down,fits,needDown;
+  needDown=x.cash?price:price*x.downPct/100;
+  if(state.mode==="down"){down=Math.max(needDown,Math.min(x.amount,price));fits=x.amount>=needDown&&(x.cash?x.amount>=price:true);}
+  else{down=needDown;fits=price<=x.amount*1.0001;}
+  const loan=Math.max(0,price-down);
+  const pay=pmt(loan,x.rate,x.years);
+  if(x.income>0&&!x.cash&&pay>0.5*x.income)fits=false;
+  if(state.mode==="down"&&!x.cash&&x.amount<needDown)fits=false;
+  return{down,loan,pay,fits};
+}
+
+function renderSummary(){
+  const b=budget();
+  $("sMax").textContent=b.maxPrice>0?"≈ "+money(b.maxPrice):"—";
+  $("sDown").textContent=money(b.down);
+  $("sLoan").textContent=money(b.loan);
+  $("sPay").textContent=b.x.cash?"жоқ":money(b.pay);
+  $("sOver").textContent=b.x.cash?"жоқ":money(Math.max(0,b.over));
+  const al=$("sAlert");let msg="";
+  if(b.limitedByIncome)msg="Баға табысыңызға байланысты шектелді: банктер әдетте айлық төлем табыстың жартысынан аспауын талап етеді.";
+  else if(b.x.income>0&&!b.x.cash&&b.pay>0.5*b.x.income)msg="Айлық төлем табысыңыздың жартысынан көп. Банк мұндай несиені мақұлдамауы мүмкін.";
+  if(state.program==="nauryz"&&state.mode==="down"&&b.x.amount<2000000)msg=(msg?msg+" ":"")+"«Наурыз» бағдарламасына Отбасы банкте кемінде 2 млн ₸ жинақ керек.";
+  al.hidden=!msg;al.textContent=msg;
+}
+
+function setProgram(k){
+  state.program=k;const p=PROGRAMS[k];
+  $("rate").value=String(p.rate).replace(".",",");$("downPct").value=p.down;$("years").value=p.years;
+  $("loanFields").style.display=k==="cash"?"none":"";
+  $("progNote").textContent=p.note;
+  document.querySelectorAll("#programs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===k));
+  renderSummary();
+}
+// Батырмалар
+const pr=$("programs");
+Object.keys(PROGRAMS).forEach(k=>{const b=document.createElement("button");b.type="button";b.dataset.k=k;b.textContent=PROGRAMS[k].t;b.onclick=()=>setProgram(k);pr.appendChild(b);});
+const rm=$("rooms");
+ROOMS.forEach(([v,t])=>{const b=document.createElement("button");b.type="button";b.dataset.v=v;b.textContent=t;b.setAttribute("aria-pressed",v===state.rooms);
+  b.onclick=()=>{state.rooms=v;rm.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.v===v));};rm.appendChild(b);});
+document.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{
+  state.mode=b.dataset.mode;
+  document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  $("amountLbl").textContent=state.mode==="down"?"Бастапқы жарнам, ₸":"Үйге жұмсайтын жалпы сома, ₸";
+  $("amount").value=state.mode==="down"?"5 000 000":"35 000 000";
+  renderSummary();
+});
+["amount","income"].forEach(id=>{
+  const el=$(id);
+  el.addEventListener("input",renderSummary);
+  el.addEventListener("blur",()=>{const v=num(el.value);el.value=v?Math.round(v).toLocaleString("ru-RU").replace(/,/g," "):"";});
+});
+["rate","downPct","years"].forEach(id=>$(id).addEventListener("input",renderSummary));
+
+// Іздеу
+const ERR={rate_limited:"Сұраныс тым көп болды немесе Gemini тегін лимиті бітті. Бір минуттан кейін қайталап көріңіз.",
+  no_key:"Сервер бапталмаған: Vercel-де GEMINI_API_KEY көрсетілмеген.",bad_price:"Сома дұрыс енгізілмеген. Кемінде 1 000 000 ₸ болуы керек."};
+async function search(){
+  const b=budget();
+  const res=$("results"),go=$("go");
+  if(!(b.maxPrice>=1e6)){res.innerHTML=`<p class="status">${ERR.bad_price}</p>`;return;}
+  go.disabled=true;go.textContent="Іздеп жатырмын…";
+  res.innerHTML=`<h2>Ұсынылған пәтерлер</h2><p class="status">ЖИ интернеттен ${money(b.maxPrice)}-ға дейінгі пәтерлерді іздеп жатыр. Бұл 10–40 секунд алуы мүмкін.</p>`;
+  try{
+    const r=await fetch("/api/search",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({maxPrice:Math.round(b.maxPrice),rooms:state.rooms,type:$("type").value,district:$("district").value,program:state.program})});
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(ERR[data.code]||"Іздеу кезінде қате шықты. Сәлден кейін қайталап көріңіз.");
+    renderResults(data,b);
+  }catch(e){
+    res.innerHTML=`<h2>Ұсынылған пәтерлер</h2><p class="status">${esc(e.message||"Іздеу кезінде қате шықты.")}</p>`;
+  }finally{go.disabled=false;go.textContent="Пәтер іздеу";}
+}
+function renderResults(data,b){
+  const res=$("results");
+  const items=(data.items||[]).map(it=>{
+    let price=Number(it.price_total_kzt)||0;
+    if(!price&&Number(it.price_per_m2_kzt)&&Number(it.area_m2))price=Number(it.price_per_m2_kzt)*Number(it.area_m2);
+    return Object.assign({},it,{price});
+  });
+  let html=`<h2>Ұсынылған пәтерлер</h2>`;
+  if(!items.length){html+=`<p class="status">Сай келетін пәтер табылмады. Бюджетті, ауданды немесе бөлме санын өзгертіп, қайта іздеп көріңіз.</p>`;res.innerHTML=html;return;}
+  if(!data.grounded)html+=`<p class="status">Ескерту: интернеттен іздеу істемеді, сондықтан бұл нұсқалар ЖИ білімі бойынша берілді. Бағаларды міндетті түрде тексеріңіз.</p>`;
+  html+=`<div class="cards">`;
+  items.sort((a,c)=>(a.price||Infinity)-(c.price||Infinity)).forEach(it=>{
+    const calc=it.price?forListing(it.price):null;
+    const q=encodeURIComponent(`${it.name||""} Алматы ${it.address||""} цена`);
+    html+=`<article class="card">
+      <h3>${esc(it.name||"Атауы белгісіз")}</h3>
+      <div class="tags">
+        ${it.status?`<span class="tag">${esc(it.status)}</span>`:""}
+        ${it.finish&&it.finish!=="белгісіз"?`<span class="tag">${esc(it.finish)}</span>`:""}
+        ${calc?`<span class="tag ${calc.fits?"fit":"over"}">${calc.fits?"Бюджетке сай":"Бюджеттен асады"}</span>`:""}
+      </div>
+      <div class="price">${it.price?money(it.price):"Бағасы көрсетілмеген"}</div>
+      <dl>
+        ${it.district||it.address?`<dt>Мекенжайы</dt><dd>${esc([it.district,it.address].filter(Boolean).join(", "))}</dd>`:""}
+        ${it.rooms||it.area_m2?`<dt>Пәтер</dt><dd>${it.rooms?esc(it.rooms)+" бөлме":""}${it.rooms&&it.area_m2?", ":""}${it.area_m2?esc(it.area_m2)+" м²":""}</dd>`:""}
+        ${it.price_per_m2_kzt?`<dt>1 м² бағасы</dt><dd>${money(Number(it.price_per_m2_kzt))}</dd>`:""}
+        ${it.completion?`<dt>Тапсыру мерзімі</dt><dd>${esc(it.completion)}</dd>`:""}
+        ${calc&&!b.x.cash?`<dt>Бастапқы жарнам</dt><dd>${money(calc.down)}</dd><dt>Ай сайынғы төлем</dt><dd><strong>${money(calc.pay)}</strong></dd>`:""}
+      </dl>
+      ${it.note?`<p>${esc(it.note)}</p>`:""}
+      <a href="https://www.google.com/search?q=${q}" target="_blank" rel="noopener">Интернеттен толығырақ қарау${it.source?" ("+esc(it.source)+")":""}</a>
+    </article>`;
+  });
+  html+=`</div>`;
+  if(data.sources&&data.sources.length){
+    html+=`<div class="sources">ЖИ қолданған дереккөздер: `+data.sources.map(s=>`<a href="${esc(s.uri)}" target="_blank" rel="noopener">${esc(s.title||"дереккөз")}</a>`).join(", ")+`</div>`;
+  }
+  res.innerHTML=html;
+  res.scrollIntoView({behavior:"smooth",block:"start"});
+}
+$("go").addEventListener("click",search);
+
+setProgram("nauryz");
+})();
+</script>
+</body>
+</html>
