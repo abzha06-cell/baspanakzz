@@ -285,7 +285,7 @@ async function search(){
     const r=await fetch("/api/search",{method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({maxPrice:Math.round(b.maxPrice),rooms:state.rooms,type:$("type").value,district:$("district").value,program:state.program})});
     const data=await r.json().catch(()=>({}));
-    if(!r.ok)throw new Error(ERR[data.code]||"Іздеу кезінде қате шықты. Сәлден кейін қайталап көріңіз.");
+    if(!r.ok)throw new Error((ERR[data.code]||"Іздеу кезінде қате шықты. Сәлден кейін қайталап көріңіз.")+(data.detail?" Google жауабы: "+data.detail:""));
     renderResults(data,b);
   }catch(e){
     res.innerHTML=`<h2>Ұсынылған пәтерлер</h2><p class="status">${esc(e.message||"Іздеу кезінде қате шықты.")}</p>`;
@@ -300,17 +300,21 @@ function renderResults(data,b){
   });
   let html=`<h2>Ұсынылған пәтерлер</h2>`;
   if(!items.length){html+=`<p class="status">Сай келетін пәтер табылмады. Бюджетті, ауданды немесе бөлме санын өзгертіп, қайта іздеп көріңіз.</p>`;res.innerHTML=html;return;}
-  if(!data.grounded)html+=`<p class="status">Ескерту: интернеттен іздеу істемеді, сондықтан бұл нұсқалар ЖИ білімі бойынша берілді. Бағаларды міндетті түрде тексеріңіз.</p>`;
+  if(!data.grounded)html+=`<div class="alert" style="margin-bottom:14px">Google арқылы іздеу бұл жолы қолжетімсіз болды, сондықтан төмендегі нұсқаларды ЖИ өз білімі бойынша берді. Аудан мен баға қате болуы мүмкін, сілтеме арқылы міндетті түрде тексеріңіз.</div>`;
   html+=`<div class="cards">`;
   items.sort((a,c)=>(a.price||Infinity)-(c.price||Infinity)).forEach(it=>{
     const calc=it.price?forListing(it.price):null;
-    const q=encodeURIComponent(`${it.name||""} Алматы ${it.address||""} цена`);
+    // Тікелей сайттың өзіне апаратын сілтеме: ЖИ оқыған бет, болмаса krisha.kz-тегі бірінші нәтиже
+    const site=/kn\.kz/i.test(it.source||"")?"kn.kz":"krisha.kz";
+    const direct=`https://duckduckgo.com/?q=${encodeURIComponent("!ducky site:"+site+" "+(it.name||"")+" Алматы")}`;
+    const href=it.link||direct;
+    const linkText=it.link?`${esc(it.link_title||"Дереккөз")} сайтында ашу`:`${site} сайтынан ашу`;
     html+=`<article class="card">
       <h3>${esc(it.name||"Атауы белгісіз")}</h3>
       <div class="tags">
         ${it.status?`<span class="tag">${esc(it.status)}</span>`:""}
         ${it.finish&&it.finish!=="белгісіз"?`<span class="tag">${esc(it.finish)}</span>`:""}
-        ${calc?`<span class="tag ${calc.fits?"fit":"over"}">${calc.fits?"Бюджетке сай":"Бюджеттен асады"}</span>`:""}
+        ${!data.grounded?`<span class="tag over">ЖИ болжамы, тексерілмеген</span>`:calc?`<span class="tag ${calc.fits?"fit":"over"}">${calc.fits?"Бюджетке сай":"Бюджеттен асады"}</span>`:""}
       </div>
       <div class="price">${it.price?money(it.price):"Бағасы көрсетілмеген"}</div>
       <dl>
@@ -321,7 +325,7 @@ function renderResults(data,b){
         ${calc&&!b.x.cash?`<dt>Бастапқы жарнам</dt><dd>${money(calc.down)}</dd><dt>Ай сайынғы төлем</dt><dd><strong>${money(calc.pay)}</strong></dd>`:""}
       </dl>
       ${it.note?`<p>${esc(it.note)}</p>`:""}
-      <a href="https://www.google.com/search?q=${q}" target="_blank" rel="noopener">Интернеттен толығырақ қарау${it.source?" ("+esc(it.source)+")":""}</a>
+      <a href="${esc(href)}" target="_blank" rel="noopener">${linkText} →</a>
     </article>`;
   });
   html+=`</div>`;
